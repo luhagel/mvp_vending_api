@@ -26,6 +26,10 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :mvp_vending_api, MvpVendingApi.Guardian,
+  issuer: "mvp_vending",
+  secret_key: "WLJguAXZmwoMbOqMxBs1U/hMADjgGZYw4WcFV+9Y220QpfF0Yvnt1pBnSeijt7XA"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
