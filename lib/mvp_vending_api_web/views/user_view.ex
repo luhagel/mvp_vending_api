@@ -14,7 +14,6 @@ defmodule MvpVendingApiWeb.UserView do
     %{
       id: user.id,
       username: user.username,
-      password: user.password,
       deposit: user.deposit,
       role: user.role
     }

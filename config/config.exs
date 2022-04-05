@@ -11,6 +11,8 @@ config :mvp_vending_api,
   ecto_repos: [MvpVendingApi.Repo],
   generators: [binary_id: true]
 
+config :mvp_vending_api, MvpVendingApi.Repo, migration_primary_key: [name: :id, type: :binary_id]
+
 # Configures the endpoint
 config :mvp_vending_api, MvpVendingApiWeb.Endpoint,
   url: [host: "localhost"],
