@@ -7,6 +7,9 @@ defmodule MvpVendingApiWeb.Router do
 
   scope "/api/v1", MvpVendingApiWeb do
     pipe_through :api
+
+    resources "/users", UserController, except: [:new, :edit]
+    resources "/products", ProductController, except: [:new, :edit]
   end
 
   # Enables LiveDashboard only for development
