@@ -17,10 +17,11 @@ defmodule MvpVendingApi.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :hashed_password, :deposit, :role])
-    |> validate_required([:username, :hashed_password, :deposit, :role])
+    |> cast(attrs, [:username, :password, :deposit, :role])
+    |> validate_required([:username, :password, :deposit, :role])
     |> put_change(:deposit, 0)
     |> unique_constraint(:username)
+    |> validate_password([])
   end
 
   @doc false
@@ -28,6 +29,9 @@ defmodule MvpVendingApi.Accounts.User do
     user
     |> cast(attrs, [:username, :password, :role])
     |> validate_required([:username, :password, :role])
+    |> put_change(:deposit, 0)
+    |> unique_constraint(:username)
+    |> validate_password([])
   end
 
   @doc false
@@ -42,5 +46,43 @@ defmodule MvpVendingApi.Accounts.User do
     user
     |> cast(attrs, [:deposit])
     |> validate_required([:deposit])
+  end
+
+  defp validate_password(changeset, opts) do
+    changeset
+    |> validate_required([:password])
+    |> validate_length(:password, min: 6, max: 72)
+    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
+    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
+    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    |> maybe_hash_password(opts)
+  end
+
+  defp maybe_hash_password(changeset, opts) do
+    hash_password? = Keyword.get(opts, :hash_password, true)
+    password = get_change(changeset, :password)
+
+    if hash_password? && password && changeset.valid? do
+      changeset
+      |> put_change(:hashed_password, Argon2.hash_pwd_salt(password))
+      |> delete_change(:password)
+    else
+      changeset
+    end
+  end
+
+  @doc """
+  Verifies the password.
+  If there is no user or the user doesn't have a password, we call
+  `Argon2.no_user_verify/0` to avoid timing attacks.
+  """
+  def valid_password?(%MvpVendingApi.Accounts.User{hashed_password: hashed_password}, password)
+      when is_binary(hashed_password) and byte_size(password) > 0 do
+    Argon2.verify_pass(password, hashed_password)
+  end
+
+  def valid_password?(_, _) do
+    Argon2.no_user_verify()
+    false
   end
 end

@@ -1,6 +1,7 @@
 defmodule MvpVendingApiWeb.ProductController do
   use MvpVendingApiWeb, :controller
 
+  alias MvpVendingApi.Accounts
   alias MvpVendingApi.Products
   alias MvpVendingApi.Products.Product
 
@@ -12,11 +13,31 @@ defmodule MvpVendingApiWeb.ProductController do
   end
 
   def create(conn, %{"product" => product_params}) do
+    user = MvpVendingApi.Guardian.Plug.current_resource(conn)
+    product_params = Map.put(product_params, "seller_id", user.id)
+
     with {:ok, %Product{} = product} <- Products.create_product(product_params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.product_path(conn, :show, product))
       |> render("show.json", product: product)
+    end
+  end
+
+  def buy(conn, %{"product_id" => product_id, "amount" => amount}) do
+    user = MvpVendingApi.Guardian.Plug.current_resource(conn)
+    product = Products.get_product!(product_id)
+
+    total_price = product.cost * amount
+
+    case total_price > user.deposit do
+      true ->
+        send_resp(conn, 400, "not enough money available")
+
+      false ->
+        Products.update_product(product, %{amount_available: product.amount_available - amount})
+        Accounts.update_user_deposit(user, %{deposit: user.deposit - total_price})
+        send_resp(conn, :ok, "successfully bought #{amount} #{product.name}")
     end
   end
 

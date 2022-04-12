@@ -38,6 +38,20 @@ defmodule MvpVendingApi.Accounts do
   def get_user!(id), do: Repo.get!(User, id)
 
   @doc """
+  Gets a user by username and password.
+  ## Examples
+      iex> get_user_by_username_and_password("foo@example.com", "correct_password")
+      %User{}
+      iex> get_user_by_username_and_password("foo@example.com", "invalid_password")
+      nil
+  """
+  def get_user_by_username_and_password(username, password)
+      when is_binary(username) and is_binary(password) do
+    user = Repo.get_by(User, username: username)
+    if User.valid_password?(user, password), do: user
+  end
+
+  @doc """
   Creates a user.
 
   ## Examples
@@ -51,7 +65,7 @@ defmodule MvpVendingApi.Accounts do
   """
   def create_user(attrs \\ %{}) do
     %User{}
-    |> User.changeset(attrs)
+    |> User.register_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -69,7 +83,25 @@ defmodule MvpVendingApi.Accounts do
   """
   def update_user(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.update_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deposits money into a users account.
+
+  ## Examples
+
+      iex> update_user_deposit(user, %{field: new_value})
+      {:ok, %User{}}
+
+      iex> update_user_deposit(user, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_deposit(%User{} = user, attrs) do
+    user
+    |> User.deposit_changeset(attrs)
     |> Repo.update()
   end
 

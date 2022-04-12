@@ -20,6 +20,24 @@ defmodule MvpVendingApiWeb.UserController do
     end
   end
 
+  def deposit(conn, %{"amount" => amount}) do
+    user = MvpVendingApi.Guardian.Plug.current_resource(conn)
+
+    with {:ok, %User{} = user} <-
+           Accounts.update_user_deposit(user, %{deposit: user.deposit + amount}) do
+      render(conn, "show.json", user: user)
+    end
+  end
+
+  def reset_deposit(conn, _params) do
+    user = MvpVendingApi.Guardian.Plug.current_resource(conn)
+
+    with {:ok, %User{} = user} <-
+           Accounts.update_user_deposit(user, %{deposit: 0}) do
+      render(conn, "show.json", user: user)
+    end
+  end
+
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     render(conn, "show.json", user: user)

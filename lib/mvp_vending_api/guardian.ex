@@ -6,7 +6,7 @@ defmodule MvpVendingApi.Guardian do
     otp_app: :mvp_vending_api,
     permissions: %{
       default: [:full],
-      users: [:create, :read, :update, :delete, :deposit],
+      users: [:create, :read, :update, :delete, :deposit, :reset],
       products: [:create, :read, :update, :delete, :buy]
     }
 
@@ -49,7 +49,7 @@ defmodule MvpVendingApi.Guardian do
   defp user_grants(:buyer),
     do: %{
       default: Permissions.max(),
-      users: [:read, :update, :delete, :deposit],
+      users: [:read, :update, :delete, :deposit, :reset],
       products: [:read, :buy]
     }
 
