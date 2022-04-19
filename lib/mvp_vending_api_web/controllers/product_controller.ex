@@ -21,8 +21,14 @@ defmodule MvpVendingApiWeb.ProductController do
       |> put_status(:created)
       |> put_resp_header("location", Routes.product_path(conn, :show, product))
       |> render("show.json", product: product)
+    else
+      {_, changeset} ->
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{changeset: changeset})
     end
   end
+
+  def buy(conn, %{"amount" => amount}) when amount <= 0 or not is_integer(amount),
+    do: render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{message: "invalid amount"})
 
   def buy(conn, %{"product_id" => product_id, "amount" => amount}) do
     user = MvpVendingApi.Guardian.Plug.current_resource(conn)
@@ -32,7 +38,7 @@ defmodule MvpVendingApiWeb.ProductController do
 
     case total_price > user.deposit do
       true ->
-        send_resp(conn, 400, "not enough money available")
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{message: "insufficient funds"})
 
       false ->
         Products.update_product(product, %{amount_available: product.amount_available - amount})
@@ -51,6 +57,9 @@ defmodule MvpVendingApiWeb.ProductController do
 
     with {:ok, %Product{} = product} <- Products.update_product(product, product_params) do
       render(conn, "show.json", product: product)
+    else
+      {_, changeset} ->
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{changeset: changeset})
     end
   end
 

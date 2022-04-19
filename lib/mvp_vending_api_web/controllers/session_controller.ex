@@ -21,7 +21,7 @@ defmodule MvpVendingApiWeb.SessionController do
     else
       error ->
         IO.inspect(error)
-        send_resp(conn, :unauthorized, "")
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{message: "invalid credentials"})
     end
   end
 

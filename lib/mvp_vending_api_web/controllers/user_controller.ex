@@ -35,6 +35,9 @@ defmodule MvpVendingApiWeb.UserController do
     with {:ok, %User{} = user} <-
            Accounts.update_user_deposit(user, %{deposit: 0}) do
       render(conn, "show.json", user: user)
+    else
+      {_, changeset} ->
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{changeset: changeset})
     end
   end
 
@@ -48,6 +51,9 @@ defmodule MvpVendingApiWeb.UserController do
 
     with {:ok, %User{} = user} <- Accounts.update_user(user, user_params) do
       render(conn, "show.json", user: user)
+    else
+      {_, changeset} ->
+        render(conn, MvpVendingApiWeb.ErrorView, "error.json", %{changeset: changeset})
     end
   end
 
@@ -58,4 +64,6 @@ defmodule MvpVendingApiWeb.UserController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def valid_amount?(amount), do: Enum.member?([5, 10, 20, 50, 100], amount)
 end
